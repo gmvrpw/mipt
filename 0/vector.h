@@ -2,6 +2,7 @@
 #define VECTOR_HPP
 
 #include <iostream>
+#include <algorithm>
 
 template <typename T>
 class Vector
@@ -28,7 +29,7 @@ public:
     auto Insert(const long long index, T value) -> void;
 
 private:
-    T *array;
+    T *data;
     long long size;
     long long maxSize;
 };
@@ -38,40 +39,40 @@ Vector<T>::Vector() : Vector(1) {}
 template <typename T>
 Vector<T>::Vector(long long size) : size{size}, maxSize{size}
 {
-    array = new T[maxSize];
+    data = new T[maxSize];
 }
 template <typename T>
 Vector<T>::Vector(long long size, T initialValue) : Vector(size)
 {
     for (long long i = 0; i < size; i++)
-        array[i] = initialValue;
+        data[i] = initialValue;
 }
 template <typename T>
 Vector<T>::Vector(Vector &v) : Vector(v.Size())
 {
     for (long long i = 0; i < v.Size(); i++)
-        array[i] = v.Get(i);
+        data[i] = v.Get(i);
 }
 template <typename T>
 Vector<T>::~Vector()
 {
-    delete[] array;
+    delete[] data;
 }
 
 template <typename T>
 auto Vector<T>::Front() const -> T &
 {
-    return array[0];
+    return data[0];
 }
 template <typename T>
 auto Vector<T>::Back() const -> T &
 {
-    return array[size];
+    return data[size];
 }
 template <typename T>
 auto Vector<T>::Data() const -> T *
 {
-    return array;
+    return data;
 }
 template <typename T>
 auto Vector<T>::Size() const -> long long
@@ -87,37 +88,35 @@ auto Vector<T>::MaxSize() const -> long long
 template <typename T>
 auto Vector<T>::Fit() -> void
 {
-    T *newArray = new T[size];
-    for (long long i = 0; i < size; ++i)
-        newArray[i] = array[i];
-    delete[] array;
-    array = newArray;
+    T *newData = new T[size];
+    std::copy(data, data + size, newData);
+    delete[] data;
+    data = newData;
     maxSize = size;
 }
 template <typename T>
 auto Vector<T>::Get(const long long index) const -> T &
 {
-    return array[index];
+    return data[index];
 }
 template <typename T>
 auto Vector<T>::Set(const long long index, T value) -> void
 {
-    array[index] = value;
+    data[index] = value;
 }
 template <typename T>
 auto Vector<T>::PushBack(T value) -> void
 {
     if (size == maxSize)
     {
-        T *newArray = new T[maxSize * 2];
+        T *newData = new T[maxSize * 2];
+        std::copy(data, data + size, newData);
+        delete[] data;
 
-        for (long long i = 0; i < size; ++i)
-            newArray[i] = array[i];
-        delete[] array;
-        array = newArray;
+        data = newData;
         maxSize *= 2;
     }
-    array[size] = value;
+    data[size] = value;
     ++size;
 }
 template <typename T>
@@ -125,29 +124,22 @@ auto Vector<T>::Insert(const long long index, T value) -> void
 {
     if (size < maxSize)
     {
-        for (long long i = 0; i < size + 1; ++i)
-        {
-            if (i < index)
-                continue;
-            std::swap(array[i], array[index]);
-        }
+        for (long long i = index; i < size + 1; ++i)
+            std::swap(data[i], data[index]);
     }
     else
     {
-        T *newArray = new T[maxSize * 2];
+        T *newData = new T[maxSize * 2];
 
         long long dash = 0;
-        for (long long i = 0; i < size + 1; ++i)
-        {
-            if (i == index)
-                ++dash;
-            newArray[i + dash] = array[i];
-        }
-        delete[] array;
-        array = newArray;
+        std::copy(data, data + index, newData);
+        std::copy(data + index, data + size, newData + index + 1);
+        newData[index] = value;
+        delete[] data;
+        data = newData;
         maxSize *= 2;
     }
-    array[index] = value;
+    data[index] = value;
     ++size;
 }
 template <typename T>
